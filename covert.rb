@@ -10,7 +10,7 @@
 --  PROGRAM:        covert
 --                ./covert.rb 
 --
---  FUNCTIONS:      XOR encryption, Ruby Gems: IPAddress, PacketFu, Resolv
+--  FUNCTIONS:      XOR encryption, Ruby Resolv, Ruby Gems: IPAddress, PacketFu
 --
 --  DATE:           April 2014
 --
