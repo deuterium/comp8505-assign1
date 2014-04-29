@@ -10,7 +10,7 @@ Requirements
 - Modify the code base to send data covertly in a method that has not already been demonstrated
 
 Constraints
-- Implemented technique for embedding cort data into the headers must be one that is not covered in Rowland’s paper
+- Implemented technique for embedding covert data into the headers must be one that is not covered in Rowland’s paper
 - Only the TCP, UDP, or IP headers are to be used for this exercise
 - All supporting data for success (or lack thereof) of the embedding scheme must be shown
 
