@@ -35,6 +35,9 @@ ERR_FILE     = "#{ERR} File does not exist"
 IF_DEV       = "wlp2s0"
 #CRYPT_KEY    = "haystacksunset lemoncircus"
 CRYPT_KEY    = "h"
+DELAY_HI     = 5
+DELAY_LOW    = 1
+
 
 ## Functions
 
@@ -71,7 +74,6 @@ end
 
 def encrypt(word)
     word.bytes.zip(CRYPT_KEY.bytes).map { |(a,b)| a ^ b}.pack('c*')
-# "hello world".bytes.zip("haystacksunset lemoncircus".bytes).map { |(a,b)| a ^ b}.pack('c*')
 end
 
 def makePayload
@@ -124,7 +126,7 @@ end
 File.open(filename, 'r') do |f|
     f.each_char do |c|
         sendData(c)
-        sleep 1
+        sleep rand(DELAY_LOW..DELAY_HI)
     end
 end
 
