@@ -33,6 +33,8 @@ ERR_PORT     = "#{ERR} Invalid Port"
 ERR_IP       = "#{ERR} Invalid IP"
 ERR_FILE     = "#{ERR} File does not exist"
 IF_DEV       = "wlp2s0"
+#CRYPT_KEY    = "haystacksunset lemoncircus"
+CRYPT_KEY    = "h"
 
 ## Functions
 
@@ -67,6 +69,15 @@ def validPort(num)
     end
 end
 
+def encrypt(word)
+    word.bytes.zip(CRYPT_KEY.bytes).map { |(a,b)| a ^ b}.pack('c*')
+# "hello world".bytes.zip("haystacksunset lemoncircus".bytes).map { |(a,b)| a ^ b}.pack('c*')
+end
+
+def makePayload
+    Array.new(rand(256)) { rand(256) }.pack('c*')
+end
+
 ## Main
 
 # check for root
@@ -94,18 +105,25 @@ elsif !File.file?(filename) # check file exists
     exitReason(ERR_FILE)
 end
 
-pkt = PacketFu::UDPPacket.new
-pkt.udp_src  = rand(0xffff-35535) + 35535 # random port between 30k and 65535
+config = PacketFu::Config.new(PacketFu::Utils.whoami?(:iface=> IF_DEV)).config
+pkt = PacketFu::UDPPacket.new(:config => config, :flavor => "Linux")
+#pkt.udp_src  = rand(0xffff-35535) + 35535 # random port between 30k and 65535
 pkt.udp_dst  = port
-pkt.ip_saddr = "142.232.187.57"
+pkt.ip_saddr = "8.8.8.8"
 pkt.ip_daddr = ip
 
-pkt::udp_header.body = "hello test"
-pkt.recalc
-
-#puts pkt::UDPHeader.to_s
+pkt::udp_header.body = makePayload
+puts pkt::udp_header.body
 
 
-pkt.to_w("wlp2s0")
+pkt.udp_src = 35535
+pkt.recalc # MUST RECALC CHECKSUM or receiver will throw out
+
+pkt.to_w
+
+c = encrypt("v")
+puts c.bytes
+puts 35535 + c.bytes[0]
+puts encrypt(c)
 
 

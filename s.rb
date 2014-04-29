@@ -6,7 +6,7 @@
 require 'socket'
 
 s = UDPSocket.new
-s.bind("127.0.0.1", 6666)
+s.bind("0.0.0.0", 6666)
 
 loop {
 	hi = s.recvfrom(20)

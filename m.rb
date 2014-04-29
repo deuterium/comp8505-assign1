@@ -6,4 +6,4 @@
 require 'socket'
 
 s = UDPSocket.new
-s.send "test", 0, "142.232.187.57", 6666
+s.send "test", 0, "142.232.164.121", 6666
