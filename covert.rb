@@ -1,22 +1,26 @@
 #!/usr/bin/env ruby
 =begin
 -------------------------------------------------------------------------------------
---  SOURCE FILE:    covert.rb - 
+--  SOURCE FILE:    covert.rb - An application to covertly transmit data in a non-
+--                  traditional manner. Data is sent via craft UDP packets, where the
+--                  real payload is encrypted in the source port field of the header.
+--                  Application process name is masked and actual payload is binary
+--                  junk.  
 --
 --  PROGRAM:        covert
 --                ./covert.rb 
 --
---  FUNCTIONS:      
+--  FUNCTIONS:      XOR encryption, Ruby Gems: IPAddress, PacketFu, Resolv
 --
 --  DATE:           April 2014
 --
---  REVISIONS:      See development repo: 
+--  REVISIONS:      See development repo: https://github.com/deuterium/comp8505-assign1
 --
 --  DESIGNERS:      Chris Wood - chriswood.ca@gmail.com
 --
 --  PROGRAMMERS:    Chris Wood - chriswood.ca@gmail.com
 --
---  NOTES:          
+--  NOTES:          Additonally requires the ruby gem pcaprub to run
 --  
 ---------------------------------------------------------------------------------------
 =end
@@ -50,6 +54,12 @@ def exitReason(reason)
     exit
 end
 
+# Attempts to resolve hostname to an IP
+#
+# @param [String] dst
+# - hostname to resolve
+# @return [String]
+# - IP Address of host
 def resolveAddress(dst)
     begin
         return Resolv.getaddress(dst)
@@ -72,14 +82,28 @@ def validPort(num)
     end
 end
 
+# Encrypts a character with XOR
+#
+# @param [String] word
+# - the character to encrypt
+# @return [FixNum]
+# - 8 bit signed integer representation of the character
 def encrypt(word)
     word.bytes.zip(CRYPT_KEY.bytes).map { |(a,b)| a ^ b}.pack('c*')
 end
 
+# Generates random junk for the packet payload
+#
+# @return [FixNum]
+# - Random length junk for crafted packet
 def makePayload
     Array.new(rand(256)) { rand(256) }.pack('c*')
 end
 
+# Crafts UDP packet with custom data and puts it on the configured wire
+#
+# @param [String] data
+# - chacter to send
 def sendData(data)
     pkt = PacketFu::UDPPacket.new(:config => @config, :flavor => "Linux")
 
@@ -121,6 +145,7 @@ elsif !File.file?(filename) # check file exists
     exitReason(ERR_FILE)
 end
 
+# wire configuration for crafted pcakets
 @config = PacketFu::Config.new(PacketFu::Utils.whoami?(:iface=> IF_DEV)).config
 
 File.open(filename, 'r') do |f|
